@@ -1,0 +1,207 @@
+class Item:
+    def __init__(self, name, price, category, size, stock):
+        self.name = name
+        self.price = price
+        self.category = category
+        self.size = size
+        self.stock = stock
+
+    def __str__(self):
+        return f"{self.name} - {self.category} - Size: {self.size} - ${self.price:.2f} (Stock: {self.stock})"
+
+class Shop:
+    def __init__(self):
+        self.items = [
+            Item("T-Shirt", 200.0, "Casual", "S to XXL", 10),
+            Item("Jeans", 500.0, "Denim", "S to XXL", 5),
+            Item("Jacket", 100.0, "Outerwear", "S to XXL", 3),
+            Item("Dress", 700.0, "Formal", "S to XXL", 7),
+            Item("Shirt", 700.0, "Formal", "S to XXL", 7),
+            Item("Chudi", 600.0, "Traditional", "S to XXL", 19),
+            Item("Chudi", 500.0, "Western", "S to XXL", 7),
+            Item("Maxi", 700.0, "Western", "S to XXL", 7),
+            Item("Aliya cut kurti", 750.0, "Casual", "S to XXL", 5),
+            Item("Kurti", 300.0, "Formal", "S to XXL", 7),
+            Item("Leggings", 100.0, "Casual", "S to XXL", 20)
+        ]
+
+    def display_items(self):
+        print("\nAvailable Items:")
+        for i, item in enumerate(self.items, start=1):
+            print(f"{i}. {item}")
+
+    def get_item(self, index):
+        if 0 <= index < len(self.items):
+            return self.items[index]
+        else:
+            return None
+
+class Cart:
+    def __init__(self):
+        self.cart_items = []
+
+    def add_to_cart(self, item, size):
+        if item.stock > 0:
+            self.cart_items.append((item, size))
+            item.stock -= 1
+            print(f"{item.name} (Size: {size}) added to cart.")
+        else:
+            print(f"{item.name} is out of stock.")
+
+    def remove_from_cart(self, item_name):
+        for item, size in self.cart_items:
+            if item.name == item_name:
+                self.cart_items.remove((item, size))
+                item.stock += 1
+                print(f"{item.name} removed from cart.")
+                return
+        print(f"{item_name} is not in your cart.")
+
+    def display_cart(self):
+        if not self.cart_items:
+            print("Your cart is empty.")
+        else:
+            print("\nYour Cart:")
+            for i, (item, size) in enumerate(self.cart_items, start=1):
+                print(f"{i}. {item} (Size: {size})")
+
+    def checkout(self):
+        total = sum(item.price for item, size in self.cart_items)
+        print(f"\nTotal amount: ${total:.2f}")
+        return total
+
+class User:
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
+def get_cloth_size():
+    sizes = ['S', 'M', 'L', 'XL', 'XXL']
+    while True:
+        size = input("Please select your size (S, M, L, XL, XXL): ").upper()
+        if size in sizes:
+            return size
+        else:
+            print("Invalid size. Please select a valid size.")
+
+def get_address_details():
+    address = input("Please enter your address details: ")
+    return address
+
+def get_payment_method():
+    while True:
+        payment_method = input("Please select your payment method (cash/google pay): ").lower()
+        if payment_method == 'cash':
+            return payment_method, None
+        elif payment_method == 'google pay':
+            while True:
+                mobile_number = input("Please enter your mobile number for Google Pay: ")
+                if mobile_number.isdigit() and len(mobile_number) == 10:
+                    return payment_method, mobile_number
+                else:
+                    print("Invalid mobile number. Please enter a 10-digit numeric value.")
+        else:
+            print("Invalid payment method. Please select 'cash' or 'google pay'.")
+
+def confirm_order():
+    while True:
+        confirmation = input("Do you want to confirm your order? (yes/no): ").lower()
+        if confirmation in ['yes', 'no']:
+            return confirmation
+        else:
+            print("Invalid input. Please type 'yes' or 'no'.")
+
+def login(users):
+    username = input("Enter username: ")
+    password = input("Enter password: ")
+    for user in users:
+        if user.username == username and user.password == password:
+            print(f"Welcome, {username}!")
+            return user
+    print("Invalid username or password.")
+    return None
+
+def main():
+    users = [User("user1", "pass1"), User("user2", "pass2")]  # Sample users
+    logged_in_user = None
+    shop = Shop()
+    cart = Cart()
+
+    while True:
+        if logged_in_user:
+            print("\nWelcome to the Clothing Shop!")
+            print("1. Browse items")
+            print("2. View cart")
+            print("3. Checkout")
+            print("4. Exit")
+            choice = input("Enter your choice: ")
+
+            if choice == '1':
+                while True:
+                    shop.display_items()
+                    try:
+                        item_index = int(input("Enter the number of the item to add to cart (0 to cancel): ")) - 1
+                        if item_index == -1:
+                            break
+                        item = shop.get_item(item_index)
+                        if item:
+                            size = get_cloth_size()
+                            cart.add_to_cart(item, size)
+                            repeat = input("Do you want to add any other dresses? (yes/no): ")
+                            if repeat.lower() != 'yes':
+                                break
+                        else:
+                            print("Invalid item number. Please try again.")
+                    except ValueError:
+                        print("Invalid input. Please enter a number.")
+            elif choice == '2':
+                cart.display_cart()
+                remove_item = input("Enter the name of the item to remove from cart (or '0' to cancel): ")
+                if remove_item != '0':
+                    cart.remove_from_cart(remove_item)
+            elif choice == '3':
+                if not cart.cart_items:
+                    print("Your cart is empty. Please add items before checking out.")
+                    continue
+
+                total = cart.checkout()
+                address = get_address_details()
+                payment_method, mobile_number = get_payment_method()
+
+                confirmation = confirm_order()
+                if confirmation == 'yes':
+                    print("Thank you for your shopping.")
+                    print()
+                    print("Order Summary:")
+                    cart.display_cart()
+                    print(f"Total Amount: ${total:.2f}")
+                    print(f"Address: {address}")
+                    print(f"Payment Method: {payment_method}")
+                    if mobile_number:
+                        print(f"Google Pay Mobile Number: {mobile_number}")
+
+                    print("Thank you for visiting the Clothing Shop!")
+                    break
+                else:
+                    print("Order not confirmed.")
+            elif choice == '4':
+                print(f"Goodbye, {logged_in_user.username}!")
+                logged_in_user = None
+            else:
+                print("Invalid choice. Please try again.")
+        else:
+            print("\n1. Login")
+            print("2. Logout")
+            choice = input("Enter your choice: ")
+
+            if choice == '1':
+                logged_in_user = login(users)
+            elif choice == '2':
+                print("2. Logout")
+                print("Thank you for visiting the Clothing Shop!")
+                break
+            else:
+                print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
